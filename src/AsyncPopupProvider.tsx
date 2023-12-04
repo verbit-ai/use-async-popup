@@ -1,0 +1,69 @@
+import React, { useContext, useState } from "react";
+import { v4 as uuid } from "uuid";
+
+import {
+	AsyncPopupComponent,
+	AsyncPopupComponentPureProps,
+	AsyncPopupReturnPromise,
+	ShowAsyncPopupFn,
+} from "./types";
+import { createPopup } from "./createPopup";
+
+type ShowPopupFn = <TComponent extends AsyncPopupComponent>(
+	PopupComponent: TComponent,
+	props: AsyncPopupComponentPureProps<TComponent>
+) => AsyncPopupReturnPromise<TComponent>;
+
+type AsyncPopupContextProps = {
+	showPopup: ShowPopupFn;
+};
+
+const Context = React.createContext<AsyncPopupContextProps | null>(null);
+
+type AsyncPopupObj = {
+	id: string;
+	Popup: React.ComponentType;
+};
+
+type AsyncPopupProviderProps = {
+	children?: React.ReactNode;
+};
+
+export function AsyncPopupProvider({ children }: AsyncPopupProviderProps) {
+	const [popups, setPopups] = useState<AsyncPopupObj[]>([]);
+
+	const showPopup: ShowPopupFn = (PopupComponent, props) => {
+		const id = uuid();
+
+		const onResolve = () =>
+			setPopups((popups) => popups.filter((p) => p.id !== id));
+
+		const [Popup, promise] = createPopup({
+			PopupComponent,
+			componentProps: props,
+			onResolve,
+		});
+		setPopups((popups) => popups.concat({ id, Popup }));
+
+		return promise;
+	};
+
+	return (
+		<Context.Provider value={{ showPopup }}>{children}</Context.Provider>
+	);
+}
+
+export function useAsyncPopupContext<TComponent extends AsyncPopupComponent>(
+	PopupComponent: TComponent
+) {
+	const ctx = useContext(Context);
+
+	if (ctx === null) {
+		throw new Error(
+			"useAsyncPopupContext() was not wrapped with an <AsyncPopupProvider />!"
+		);
+	}
+
+	return (props: AsyncPopupComponentPureProps<TComponent>) =>
+		ctx.showPopup(PopupComponent, props);
+}
