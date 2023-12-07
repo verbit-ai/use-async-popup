@@ -8,7 +8,7 @@ import {
 	AsyncPopupProps,
 	AsyncPopupPureProps,
 	AsyncPopupReturnPromise,
-	BaseAsyncPopupProps,
+	AsyncPopupBaseProps,
 	ShowAsyncPopupFn,
 } from './types'
 

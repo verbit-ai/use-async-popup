@@ -32,7 +32,7 @@ describe('useAsyncPopup()', () => {
 		expect(ui.queryByText('Test-Popup')).not.toBeInTheDocument()
 
 		await userEvent.click(ui.getByText('show popup'))
-		expect(ui.queryByText('Test-Popup')).toBeInTheDocument()
+		expect(ui.getByText('Test-Popup')).toBeInTheDocument()
 
 		await userEvent.click(ui.getByText('resolve'))
 		expect(resolveFn).toHaveBeenCalledWith(true)
